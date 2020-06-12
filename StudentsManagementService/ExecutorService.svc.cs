@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using WCF.Domain.StudentsManagement;
 using StudentsManagementService.Queries.StudentQueries;
-using StudentsManagementService.Command.Infrastructure;
 using StudentsManagementService.Command.StudentCommands;
 
 namespace StudentsManagementService
@@ -31,25 +30,25 @@ namespace StudentsManagementService
         //    }
         //}
         
-        public CommandExecutionResult<Student> CreateStudent(CreateStudentCommand command)
+        public bool CreateStudent(CreateStudentCommand command)
         {
             StudentsCommandHandler handler = new StudentsCommandHandler();
             return handler.Handle(command);
         }
 
-        public QueryExecutionResult<IEnumerable<Student>> ReadStudent(StudentListQuery query)
+        public IEnumerable<Student> ReadStudent(StudentListQuery query)
         {
             StudentsQueryHandler handler = new StudentsQueryHandler();
             return handler.Handle(query);
         }
 
-        public CommandExecutionResult<Student> UpdateStudent(UpdateStudentCommand command)
+        public bool UpdateStudent(UpdateStudentCommand command)
         {
             StudentsCommandHandler handler = new StudentsCommandHandler();
             return handler.Handle(command);
         }
 
-        public CommandExecutionResult<Student> DeleteStudent(DeleteStudentCommand command)
+        public bool DeleteStudent(DeleteStudentCommand command)
         {
             StudentsCommandHandler handler = new StudentsCommandHandler();
             return handler.Handle(command);

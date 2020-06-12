@@ -3,11 +3,10 @@ using System.Linq;
 using System.Collections.Generic;
 using WCF.Infrastructure.DataBase;
 using WCF.Domain.StudentsManagement;
-using StudentsManagementService.Command.Infrastructure;
 
 namespace StudentsManagementService.Queries.StudentQueries
 {
-    public class StudentsQueryHandler : IRequestHandler<StudentListQuery, QueryExecutionResult<IEnumerable<Student>>>
+    public class StudentsQueryHandler : IRequestHandler<StudentListQuery, IEnumerable<Student>>
     {
         private readonly WCFContext _context;
 
@@ -16,30 +15,25 @@ namespace StudentsManagementService.Queries.StudentQueries
             _context = new WCFContext();
         }
 
-        public QueryExecutionResult<IEnumerable<Student>> Handle(StudentListQuery request)
+        public IEnumerable<Student> Handle(StudentListQuery request)
         {
             try
             {
-                var students = _context.Set<Student>().AsNoTracking().ToList();
+                var students = _context.Set<Student>().AsEnumerable();
+                
+                if(students == null)
+                    return default(IEnumerable<Student>);
 
                 if (!string.IsNullOrWhiteSpace(request.FirstName))
-                    students.Where(student => student.FirstName.Contains(request.FirstName));
+                    students = students.Where(student => student.FirstName.Contains(request.FirstName));
                 if (!string.IsNullOrWhiteSpace(request.LastName))
-                    students.Where(student => student.LastName.Contains(request.LastName));
+                    students = students.Where(student => student.LastName.Contains(request.LastName));
 
-                return new QueryExecutionResult<IEnumerable<Student>>()
-                {
-                    Success = true,
-                    Data = students
-                };
+                return students.ToList();
             }
             catch (Exception exception)
             {
-                return new QueryExecutionResult<IEnumerable<Student>>()
-                {
-                    Success = false,
-                    Exception = exception
-                };
+                return default(IEnumerable<Student>);
             }
         }
     }

@@ -1,13 +1,12 @@
 ﻿using System;
 using WCF.Infrastructure.DataBase;
 using WCF.Domain.StudentsManagement;
-using StudentsManagementService.Command.Infrastructure;
 
 namespace StudentsManagementService.Command.StudentCommands
 {
-    public class StudentsCommandHandler : IRequestHandler<CreateStudentCommand, CommandExecutionResult<Student>>,
-        IRequestHandler<UpdateStudentCommand, CommandExecutionResult<Student>>,
-        IRequestHandler<DeleteStudentCommand, CommandExecutionResult<Student>>
+    public class StudentsCommandHandler : IRequestHandler<CreateStudentCommand, bool>,
+        IRequestHandler<UpdateStudentCommand, bool>,
+        IRequestHandler<DeleteStudentCommand, bool>
     {
         private readonly WCFContext _context;
 
@@ -16,78 +15,69 @@ namespace StudentsManagementService.Command.StudentCommands
             _context = new WCFContext();
         }
 
-        public CommandExecutionResult<Student> Handle(CreateStudentCommand request)
+        public bool Handle(CreateStudentCommand request)
         {
             try
             {
-                var student = new Student(request.FirstName, request.LastName, request.BirthDate,request.Gpi);
+                if (request.BirthDate == null)
+                    return false;
+
+                var student = new Student(request.FirstName, request.LastName, request.BirthDate, request.Gpi);
 
                 _context.Set<Student>().Add(student);
                 _context.SaveChangesAsync();
 
-
-                return new CommandExecutionResult<Student>()
-                {
-                    Success = true,
-                    Data = student
-                };
+                return true;
             }
             catch (Exception exception)
             {
-                return new CommandExecutionResult<Student>()
-                {
-                    Success = false,
-                    Exception = exception
-                };
+                return false;
             }
         }
 
-        public CommandExecutionResult<Student> Handle(UpdateStudentCommand request)
+        public bool Handle(UpdateStudentCommand request)
         {
             try
             {
+                if (request.Id == 0 || request.BirthDate == null)
+                    return false;
+
                 var student = _context.Set<Student>().Find(request.Id);
+                if (student == null)
+                    return false;
                 var updated = new Student(request.FirstName, request.LastName, request.BirthDate);
-                
+
                 _context.SaveChanges();
 
-                return new CommandExecutionResult<Student>()
-                {
-                    Success = true,
-                    Data = student
-                };
+                return true;
             }
             catch (Exception exception)
             {
-                return new CommandExecutionResult<Student>()
-                {
-                    Success = false,
-                    Exception = exception
-                };
+                return false;
             }
         }
 
-        public CommandExecutionResult<Student> Handle(DeleteStudentCommand request)
+        public bool Handle(DeleteStudentCommand request)
         {
             try
             {
+                if (request.Id == 0)
+                    return false;
+
                 var student = _context.Set<Student>().Find(request.Id);
+
+                if (student == null)
+                    return false;
 
                 _context.Set<Student>().Remove(student);
                 _context.SaveChanges();
 
-                return new CommandExecutionResult<Student>()
-                {
-                    Success = true
-                };
+                return true;
             }
+
             catch (Exception exception)
             {
-                return new CommandExecutionResult<Student>()
-                {
-                    Success = false,
-                    Exception = exception
-                };
+                return false;
             }
         }
     }
