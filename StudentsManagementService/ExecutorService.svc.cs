@@ -1,37 +1,28 @@
-﻿using System.Threading.Tasks;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using WCF.Domain.StudentsManagement;
+using StudentsManagementService.Query.StudentQueries;
 using StudentsManagementService.Queries.StudentQueries;
 using StudentsManagementService.Command.StudentCommands;
+using WCF.Domain.CourseManagement;
+using StudentsManagementService.Query.CourseQueries;
+using WCF.Domain.StudentsManagement.ReadModels;
+using WCF.Infrastructure.DataBase;
+using System.Linq;
 
 namespace StudentsManagementService
 {
     public class ExecutorService : IExecutorService
     {
-        //public TResponse Send<TResponse, TRequest>(TRequest request)
-        //{
-        //    try
-        //    {
-        //        var handler = Assembly.GetExecutingAssembly()
-        //                    .GetTypes()
-        //                       .Where(type => type
-        //                           .IsSubclassOf(typeof(IRequestHandler<TRequest, TResponse>)))
-        //                           .FirstOrDefault();
+        private readonly WCFContext _context;
 
-        //        var instance = Activator.CreateInstance(handler);
-        //        var parameters = new object[] { (TRequest)Activator.CreateInstance(typeof(TRequest)) };
-        //        return (TResponse)handler
-        //                    .GetMethod("Handle")
-        //                    .Invoke(instance, parameters);
-        //    }
-        //    catch (NullReferenceException) when (request == null)
-        //    {
-        //        throw new NullReferenceException();
-        //    }
-        //}
-        
-        public bool CreateStudent(CreateStudentCommand command)
+        public ExecutorService()
         {
+            _context = new WCFContext();
+        }
+
+        public string CreateStudent(CreateStudentCommand command)
+        {
+            //command.CourseIds = new List<int>() { 4 };
             StudentsCommandHandler handler = new StudentsCommandHandler();
             return handler.Handle(command);
         }
@@ -42,16 +33,35 @@ namespace StudentsManagementService
             return handler.Handle(query);
         }
 
-        public bool UpdateStudent(UpdateStudentCommand command)
+        public string UpdateStudent(UpdateStudentCommand command)
         {
             StudentsCommandHandler handler = new StudentsCommandHandler();
             return handler.Handle(command);
         }
 
-        public bool DeleteStudent(DeleteStudentCommand command)
+        public string DeleteStudent(DeleteStudentCommand command)
         {
             StudentsCommandHandler handler = new StudentsCommandHandler();
             return handler.Handle(command);
+        }
+
+        public StudentDetailsDto StudentDetails(StudentDetailsQuery query)
+        {
+            StudentsQueryHandler handler = new StudentsQueryHandler();
+            return handler.Handle(query);
+        }
+
+        public IEnumerable<Course> ReadCourses(CourseListQuery query)
+        {
+            CoursesQueryHandler handler = new CoursesQueryHandler();
+            return handler.Handle(query);
+        }
+
+        public List<Course> GetCourseByStudentId(int Id)
+        {
+            var courses = _context.Set<Student>().Include("Courses").Where(x=>x.Id == Id).SelectMany(student=> student.Courses).ToList();
+            
+            return courses == null ? default(List<Course>) : courses;
         }
     }
 }
